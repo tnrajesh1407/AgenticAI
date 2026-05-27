@@ -16,7 +16,7 @@ st.set_page_config(
     page_title="AI Architect Assistant",
     page_icon="🏗️",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="collapsed",   # kept for local; CSS hides it on cloud
 )
 
 # ── Custom CSS ──────────────────────────────────────────────────────────────────
@@ -27,6 +27,27 @@ st.markdown("""
 html, body, [class*="css"] { font-family: 'Syne', sans-serif; }
 .stApp { background: #0a0a0f; color: #e8e8f0; }
 #MainMenu, footer, header { visibility: hidden; }
+
+/* ── Hide sidebar and its toggle arrow on all envs ── */
+[data-testid="stSidebar"] { display: none !important; }
+[data-testid="collapsedControl"] { display: none !important; }
+section[data-testid="stSidebarNav"] { display: none !important; }
+
+/* API key input styling in main area */
+div[data-testid="stTextInput"] label {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    letter-spacing: 2px; color: #6366f1 !important; text-transform: uppercase;
+}
+div[data-testid="stTextInput"] input {
+    background: #0f0f1e !important; border: 1px solid #2a2a4a !important;
+    border-radius: 8px !important; color: #e8e8f0 !important;
+    font-family: 'IBM Plex Mono', monospace !important; font-size: 13px !important;
+    padding: 10px 14px !important;
+}
+div[data-testid="stTextInput"] input:focus {
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 2px rgba(99,102,241,0.15) !important;
+}
 
 .hero {
     background: linear-gradient(135deg, #0d0d1a 0%, #111128 50%, #0a0a12 100%);
@@ -484,20 +505,14 @@ def render_download_button(docx_bytes: bytes, filename: str):
     )
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ── Sidebar ─────────────────────────────────────────────────────────────────────
-with st.sidebar:
-    st.markdown("### ⚙️ Configuration")
-    api_key = st.text_input("Anthropic API Key", type="password", placeholder="sk-ant-...")
-    st.markdown("---")
-    st.markdown("**Model:** claude-sonnet-4-20250514")
-    st.markdown("**Router:** auto-classifies intent")
-    st.markdown("---")
-    st.markdown("**Supported modes:**")
-    for k, v in INTENTS.items():
-        if k != "UNKNOWN":
-            st.markdown(f"{v['icon']} {v['label']}")
-    st.markdown("---")
-    st.markdown("*Just type naturally — intent is auto-detected.*")
+# ── API key (inline, no sidebar) ────────────────────────────────────────────────
+# Rendered just before the hero so it's always visible on Streamlit Cloud
+api_key = st.text_input(
+    "ANTHROPIC API KEY",
+    type="password",
+    placeholder="sk-ant-...  (never stored)",
+    help="Get your key at console.anthropic.com",
+)
 
 # ── Hero ────────────────────────────────────────────────────────────────────────
 st.markdown("""
@@ -537,7 +552,7 @@ run_btn = st.button("⬡  ANALYZE & RESPOND", use_container_width=True)
 # ── Run ─────────────────────────────────────────────────────────────────────────
 if run_btn:
     if not api_key:
-        st.error("⚠️  Please enter your Anthropic API key in the sidebar.")
+        st.error("⚠️  Please enter your Anthropic API key above.")
     elif not query.strip():
         st.error("⚠️  Please enter a query.")
     else:
